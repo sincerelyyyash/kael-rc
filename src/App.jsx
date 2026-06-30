@@ -84,8 +84,14 @@ export default function App() {
   useLayoutEffect(() => {
     const fit = () => {
       const topH = document.querySelector('.stage-top')?.offsetHeight ?? 52
-      const avail = window.innerHeight - topH - 20
-      const s = Math.min(avail / 954, (window.innerWidth - 28) / 452, 1)
+      // On phones, leave a wider margin so the mockup floats with space on
+      // every side — lets it be screen-recorded like a phone-in-phone video
+      // instead of running edge-to-edge. Desktop keeps the original tight fit.
+      const phone = window.innerWidth <= 760
+      const sideGap = phone ? 56 : 28 // total horizontal breathing room (px)
+      const vertGap = phone ? 80 : 20 // vertical breathing room below the header (px)
+      const avail = window.innerHeight - topH - vertGap
+      const s = Math.min(avail / 954, (window.innerWidth - sideGap) / 452, 1)
       setScale(Math.max(0.4, s))
     }
     fit()
