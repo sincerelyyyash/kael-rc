@@ -67,6 +67,7 @@ import {
   Flame as PhFlame,
   CalendarHeart as PhCalendarHeart,
   Target as PhTarget,
+  Camera as PhCamera,
 } from '@phosphor-icons/react'
 
 /* Wrap a Phosphor icon to honour our { size, sw, weight } API.
@@ -93,6 +94,7 @@ export const Plus = make(PhPlus)
 export const Send = make(PaperPlaneTilt)
 export const Mic = make(PhMic)
 export const Download = make(PhDownload)
+export const Camera = make(PhCamera)
 export const Grid = make(PhGrid)
 export const Sliders = make(SlidersHorizontal)
 export const Close = make(PhX)

@@ -24,7 +24,7 @@ import ReflectionCards from './screens/ReflectionCards.jsx'
 import KaelDuo from './screens/KaelDuo.jsx'
 import IntroConcept from './screens/IntroConcept.jsx'
 import JourneyConcept from './screens/JourneyConcept.jsx'
-import { Sparkle, Sun, Moon, Download, Grid } from './components/Icons.jsx'
+import { Sparkle, Sun, Moon, Download, Camera, Grid } from './components/Icons.jsx'
 import { kaelReply } from './kael.js'
 import { CHAT, MOOD, getReflection } from './journal.js'
 
@@ -80,6 +80,7 @@ export default function App() {
   const [stack, setStack] = useState([])
   const [sheet, setSheet] = useState(null)
   const [draft, setDraft] = useState('')
+  const [shooting, setShooting] = useState(false)
 
   useLayoutEffect(() => {
     const fit = () => {
@@ -146,19 +147,54 @@ export default function App() {
     sendText(message)
   }
 
+  // Capture just the screen content (no phone bezel) at 3x for a crisp,
+  // shareable image of whatever is currently on screen.
   async function downloadShot() {
     const node = document.querySelector('.phone-screen')
-    if (!node) return
-    const { toPng } = await import('html-to-image')
-    const dataUrl = await toPng(node, {
-      pixelRatio: 3,
-      cacheBust: true,
-      style: { borderRadius: '0px' },
+    if (!node || shooting) return
+    setShooting(true)
+    // html-to-image resets scrollTop on its clone, so bake the current inner
+    // scroll offset into a transform (then restore) to capture the scrolled
+    // view rather than always snapping back to the top.
+    const restore = []
+    node.querySelectorAll('*').forEach((el) => {
+      const s = el.scrollTop
+      if (!s) return
+      const kids = Array.from(el.children)
+      const prevTransforms = kids.map((k) => k.style.transform)
+      const prevOverflow = el.style.overflow
+      el.style.overflow = 'hidden'
+      el.scrollTop = 0
+      kids.forEach((k) => {
+        k.style.transform = `translateY(${-s}px)`
+      })
+      restore.push(() => {
+        el.style.overflow = prevOverflow
+        kids.forEach((k, i) => {
+          k.style.transform = prevTransforms[i]
+        })
+        el.scrollTop = s
+      })
     })
-    const a = document.createElement('a')
-    a.href = dataUrl
-    a.download = `kael-${tab}-${theme}.png`
-    a.click()
+    try {
+      const { toPng } = await import('html-to-image')
+      const dataUrl = await toPng(node, {
+        pixelRatio: 3,
+        cacheBust: true,
+        style: { borderRadius: '0px' },
+      })
+      const stamp = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[:T]/g, '-')
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = `kael-${tab}-${theme}-${stamp}.png`
+      a.click()
+    } finally {
+      restore.forEach((r) => r())
+      setShooting(false)
+    }
   }
 
   const handlers = {
@@ -203,7 +239,12 @@ export default function App() {
             <Grid size={17} sw={1.6} />
           </button>
           {view === 'app' && (
-            <button className="shot-btn" onClick={downloadShot} aria-label="Download screen as PNG">
+            <button
+              className="shot-btn"
+              onClick={downloadShot}
+              disabled={shooting}
+              aria-label="Download screen as PNG"
+            >
               <Download size={17} sw={1.6} />
             </button>
           )}
@@ -419,6 +460,19 @@ export default function App() {
         </motion.div>
         )}
       </main>
+
+      {view === 'app' && (
+        <button
+          className="capture-fab"
+          onClick={downloadShot}
+          disabled={shooting}
+          data-busy={shooting}
+          aria-label="Save this screen as a high-res image"
+          title="Save this screen as an image"
+        >
+          <Camera size={22} sw={1.7} />
+        </button>
+      )}
     </div>
   )
 }

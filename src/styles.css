@@ -259,6 +259,37 @@ svg {
   background: color-mix(in srgb, var(--studio-ink) 16%, transparent);
 }
 
+/* Floating capture button — always reachable while walking the mockup
+   (esp. on phones). Sits outside .phone-screen, so it's never in the shot. */
+.capture-fab {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 90;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--studio-ink);
+  border: 1px solid color-mix(in srgb, #fff 22%, transparent);
+  box-shadow: 0 10px 28px -8px color-mix(in srgb, var(--studio-ink) 55%, transparent);
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.capture-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px -8px color-mix(in srgb, var(--studio-ink) 60%, transparent);
+}
+.capture-fab:active {
+  transform: scale(0.94);
+}
+.capture-fab[data-busy='true'] {
+  opacity: 0.55;
+  cursor: progress;
+}
+
 /* Component library */
 .lib-page {
   width: 100%;
